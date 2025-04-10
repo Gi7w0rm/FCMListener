@@ -251,7 +251,7 @@ if (typeof firebase === 'undefined') {
     log('Firebase SDK not loaded', 'error');
 }
 
-// Initialize Firebase and set up messaging
+// Initialize Firebase and request required permissions
 async function initializeFirebase() {
     try {
         // Validate Firebase config
@@ -267,14 +267,30 @@ async function initializeFirebase() {
             firebase.initializeApp(firebaseConfig);
         }
 
-        // Get messaging instance
         const messaging = firebase.messaging();
-        
-        // Register service worker
         await registerServiceWorker();
 
-        // Get FCM token without notification permission
-        const token = await messaging.getToken({ vapidKey: firebaseConfig.vapidKey });
+        // Check current permission status
+        if (Notification.permission === 'denied') {
+            log('FCM requires notification permission to function.', 'error');
+            log('Please enable notifications in your browser settings:', 'info');
+            log('1. Click the lock/info icon in your browser\'s address bar', 'info');
+            log('2. Find "Notifications" in the permissions list', 'info');
+            log('3. Change the setting to "Allow"', 'info');
+            throw new Error('Notification permission required for FCM');
+        }
+
+        // Request permission if not granted
+        if (Notification.permission === 'default') {
+            log('FCM requires notification permission to receive messages.', 'info');
+            const permission = await Notification.requestPermission();
+            if (permission !== 'granted') {
+                throw new Error('Notification permission required for FCM');
+            }
+        }
+
+        // Get FCM token
+        const token = await messaging.getToken();
         log('FCM Token obtained', 'success');
         log(`Token: ${token}`, 'info');
 
@@ -283,21 +299,11 @@ async function initializeFirebase() {
             await sendTokenToServer(token);
         }
 
-        // Set up message handling for foreground messages
+        // Set up message handling
         messaging.onMessage((payload) => {
+            // Only log to output div, don't show notifications
             log('New message received:', 'info');
             log(JSON.stringify(payload, null, 2), 'info');
-        });
-
-        // Handle token refresh
-        messaging.onTokenRefresh(async () => {
-            const newToken = await messaging.getToken({ vapidKey: firebaseConfig.vapidKey });
-            log('Token refreshed:', 'info');
-            log(`New token: ${newToken}`, 'info');
-            
-            if (serverConfig.serverUrl.url) {
-                await sendTokenToServer(newToken);
-            }
         });
 
         return token;
