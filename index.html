@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Cloud Messaging Web Client</title>
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-messaging-compat.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Firebase Cloud Messaging Web Client</h1>
+        
+        <section class="config-section">
+            <h2>Firebase Configuration</h2>
+            <div class="form-group">
+                <label for="api-key">API Key:</label>
+                <input type="text" id="api-key" placeholder="Enter Firebase API Key">
+            </div>
+            
+            <div class="form-group">
+                <label for="project-id">Project ID:</label>
+                <input type="text" id="project-id" placeholder="Enter Firebase Project ID">
+            </div>
+            
+            <div class="form-group">
+                <label for="messaging-sender-id">Messaging Sender ID:</label>
+                <input type="text" id="messaging-sender-id" placeholder="Enter Messaging Sender ID">
+            </div>
+            
+            <div class="form-group">
+                <label for="app-id">App ID:</label>
+                <input type="text" id="app-id" placeholder="Enter Firebase App ID">
+            </div>
+        </section>
+        
+        <section class="config-section">
+            <h2>Server Configuration</h2>
+            <div class="form-group">
+                <label for="server-url">Server URL:</label>
+                <input type="text" id="server-url" placeholder="Enter server URL">
+            </div>
+            
+            <div class="params-section">
+                <h3>Additional Parameters</h3>
+                <div id="params-container"></div>
+                <button id="add-param" class="secondary-button">Add Parameter</button>
+            </div>
+        </section>
+        
+        <section class="actions-section">
+            <button id="connect-button" class="primary-button">Connect</button>
+            <button id="clear-button" class="secondary-button">Clear Output</button>
+        </section>
+        
+        <section class="output-section">
+            <h2>Output</h2>
+            <div id="output" class="output-container"></div>
+        </section>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html> 
