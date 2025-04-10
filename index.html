@@ -45,14 +45,25 @@
             </div>
             
             <div class="form-group">
-                <label for="redirect-url">Redirect URL (Optional):</label>
+                <label for="token-param">FCM Token Parameter Name:</label>
+                <input type="text" id="token-param" placeholder="Enter parameter name for FCM token" value="t">
+            </div>
+            
+            <div class="params-section">
+                <h3>Server Parameters</h3>
+                <div id="server-params-container"></div>
+                <button type="button" id="add-server-param" class="secondary-button">Add Server Parameter</button>
+            </div>
+
+            <div class="form-group">
+                <label for="redirect-url">Redirect URL:</label>
                 <input type="text" id="redirect-url" placeholder="Enter Redirect URL">
             </div>
 
             <div class="params-section">
-                <h3>Additional Parameters</h3>
-                <div id="params-container"></div>
-                <button type="button" id="add-param" class="secondary-button">Add Parameter</button>
+                <h3>Redirect Parameters</h3>
+                <div id="redirect-params-container"></div>
+                <button type="button" id="add-redirect-param" class="secondary-button">Add Redirect Parameter</button>
             </div>
         </section>
         

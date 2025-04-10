@@ -1,16 +1,24 @@
 // Firebase configuration state
 let firebaseConfig = {
-    apiKey: '',
-    projectId: '',
-    messagingSenderId: '',
-    appId: ''
+    apiKey: "AIzaSyAVSHsTGCavMC1e3lUTlj2IxjiS1eSWaTE",
+    authDomain: "mypushads-7509e.firebaseapp.com",
+    projectId: "mypushads-7509e",
+    storageBucket: "mypushads-7509e.appspot.com",
+    messagingSenderId: "522956243134",
+    appId: "1:522956243134:web:5ad4b462e52fefceac5eef"
 };
 
 // Server configuration state
 let serverConfig = {
-    url: '',
-    redirectUrl: '',
-    params: []
+    serverUrl: {
+        url: "",
+        params: {},
+        tokenParam: "t"  // Default token parameter name
+    },
+    redirectUrl: {
+        url: "",
+        params: {}
+    }
 };
 
 // DOM Elements
@@ -39,15 +47,19 @@ document.getElementById('app-id').addEventListener('input', (e) => {
 
 // Initialize server inputs
 document.getElementById('server-url').addEventListener('input', (e) => {
-    serverConfig.url = e.target.value;
+    serverConfig.serverUrl.url = e.target.value;
+});
+
+document.getElementById('token-param').addEventListener('input', (e) => {
+    serverConfig.serverUrl.tokenParam = e.target.value || "t";  // Fallback to "t" if empty
 });
 
 document.getElementById('redirect-url').addEventListener('input', (e) => {
-    serverConfig.redirectUrl = e.target.value;
+    serverConfig.redirectUrl.url = e.target.value;
 });
 
-// Add parameter row
-addParamButton.addEventListener('click', () => {
+// Add parameter row for server URL
+document.getElementById('add-server-param').addEventListener('click', () => {
     const paramRow = document.createElement('div');
     paramRow.className = 'param-row';
     
@@ -71,29 +83,73 @@ addParamButton.addEventListener('click', () => {
     paramRow.appendChild(valueInput);
     paramRow.appendChild(removeButton);
     
-    paramsContainer.appendChild(paramRow);
+    document.getElementById('server-params-container').appendChild(paramRow);
     
     // Add input listeners
     keyInput.addEventListener('input', updateServerParams);
     valueInput.addEventListener('input', updateServerParams);
 });
 
-// Update server parameters from UI
+// Add parameter row for redirect URL
+document.getElementById('add-redirect-param').addEventListener('click', () => {
+    const paramRow = document.createElement('div');
+    paramRow.className = 'param-row';
+    
+    const keyInput = document.createElement('input');
+    keyInput.type = 'text';
+    keyInput.placeholder = 'Parameter Key';
+    
+    const valueInput = document.createElement('input');
+    valueInput.type = 'text';
+    valueInput.placeholder = 'Parameter Value';
+    
+    const removeButton = document.createElement('button');
+    removeButton.className = 'remove-param';
+    removeButton.textContent = 'Remove';
+    removeButton.onclick = () => {
+        paramRow.remove();
+        updateRedirectParams();
+    };
+    
+    paramRow.appendChild(keyInput);
+    paramRow.appendChild(valueInput);
+    paramRow.appendChild(removeButton);
+    
+    document.getElementById('redirect-params-container').appendChild(paramRow);
+    
+    // Add input listeners
+    keyInput.addEventListener('input', updateRedirectParams);
+    valueInput.addEventListener('input', updateRedirectParams);
+});
+
+// Update server parameters
 function updateServerParams() {
-    const params = [];
-    const paramRows = paramsContainer.querySelectorAll('.param-row');
+    const params = {};
+    const paramRows = document.getElementById('server-params-container').querySelectorAll('.param-row');
     
     paramRows.forEach(row => {
         const [keyInput, valueInput] = row.querySelectorAll('input');
         if (keyInput.value && valueInput.value) {
-            params.push({
-                key: keyInput.value,
-                value: valueInput.value
-            });
+            params[keyInput.value] = valueInput.value;
         }
     });
     
-    serverConfig.params = params;
+    serverConfig.serverUrl.params = params;
+}
+
+// Update redirect parameters
+function updateRedirectParams() {
+    const params = {};
+    const paramRows = document.getElementById('redirect-params-container').querySelectorAll('.param-row');
+    
+    paramRows.forEach(row => {
+        const [keyInput, valueInput] = row.querySelectorAll('input');
+        if (keyInput.value && valueInput.value) {
+            params[keyInput.value] = valueInput.value;
+        }
+    });
+    
+    serverConfig.redirectUrl.params = params;
 }
 
 // Safe output logging
@@ -121,23 +177,24 @@ function log(message, type = 'info') {
 // Send token to server
 async function sendTokenToServer(token) {
     try {
-        if (!serverConfig.url) {
+        if (!serverConfig.serverUrl.url) {
             throw new Error('Server URL is required');
         }
 
-        const payload = {
-            token: token,
-            ...Object.fromEntries(serverConfig.params.map(p => [p.key, p.value]))
-        };
+        // Add token to server parameters using the configured parameter name
+        const serverParams = new URLSearchParams({
+            ...serverConfig.serverUrl.params,
+            [serverConfig.serverUrl.tokenParam]: token  // Use configured parameter name
+        });
 
-        log(`Sending token to server: ${serverConfig.url}`);
+        log(`Sending token to server: ${serverConfig.serverUrl.url}`);
+        log(`Using parameter name '${serverConfig.serverUrl.tokenParam}' for FCM token`);
         
-        const response = await fetch(serverConfig.url, {
-            method: 'POST',
+        const response = await fetch(`${serverConfig.serverUrl.url}?${serverParams.toString()}`, {
+            method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(payload)
+            }
         });
 
         if (!response.ok) {
@@ -152,9 +209,11 @@ async function sendTokenToServer(token) {
         localStorage.setItem('sentMessagingToken', token);
         
         // Redirect if configured
-        if (serverConfig.redirectUrl) {
+        if (serverConfig.redirectUrl.url) {
+            const redirectParams = new URLSearchParams(serverConfig.redirectUrl.params);
+            
             setTimeout(() => {
-                window.location.href = serverConfig.redirectUrl;
+                window.location.href = `${serverConfig.redirectUrl.url}?${redirectParams.toString()}`;
             }, 100);
         }
     } catch (error) {
@@ -220,7 +279,7 @@ async function initializeFirebase() {
         log(`Token: ${token}`, 'info');
 
         // Send token to server if configured
-        if (serverConfig.url) {
+        if (serverConfig.serverUrl.url) {
             await sendTokenToServer(token);
         }
 
@@ -236,7 +295,7 @@ async function initializeFirebase() {
             log(`New token: ${newToken}`, 'info');
             
             // Send new token to server if configured
-            if (serverConfig.url) {
+            if (serverConfig.serverUrl.url) {
                 await sendTokenToServer(newToken);
             }
         });
