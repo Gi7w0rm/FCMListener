@@ -1,5 +1,6 @@
-importScripts('https://www.gstatic.com/firebasejs/9.x.x/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/9.x.x/firebase-messaging-compat.js');
+// Update these imports to use specific version numbers
+importScripts('https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js');
 
 // Initialize Firebase with configuration from the main window
 self.addEventListener('message', (event) => {
