@@ -222,35 +222,6 @@ async function sendTokenToServer(token) {
     }
 }
 
-// Register service worker and send configuration
-async function registerServiceWorker() {
-    try {
-        // Use the correct path for the FCMListener repository
-        const swPath = '/FCMListener/firebase-messaging-sw.js';
-        const registration = await navigator.serviceWorker.register(swPath);
-        log('Service Worker registered successfully', 'success');
-
-        // Wait for the service worker to be ready
-        await navigator.serviceWorker.ready;
-
-        // Send Firebase configuration to the service worker
-        registration.active.postMessage({
-            type: 'FIREBASE_CONFIG',
-            config: firebaseConfig
-        });
-
-        return registration;
-    } catch (error) {
-        log(`Service Worker registration failed: ${error.message}`, 'error');
-        throw error;
-    }
-}
-
-// Make sure Firebase is loaded before using it
-if (typeof firebase === 'undefined') {
-    log('Firebase SDK not loaded', 'error');
-}
-
 // Initialize Firebase and request required permissions
 async function initializeFirebase() {
     try {
@@ -268,9 +239,15 @@ async function initializeFirebase() {
         }
 
         const messaging = firebase.messaging();
-        await registerServiceWorker();
+        
+        // Explicitly set the service worker path for FCM
+        await messaging.getToken({
+            vapidKey: firebaseConfig.vapidKey,
+            serviceWorkerRegistration: await navigator.serviceWorker.register('/FCMListener/firebase-messaging-sw.js', {
+                scope: '/FCMListener/'
+            })
+        });
 
-        // Check current permission status
         if (Notification.permission === 'denied') {
             log('FCM requires notification permission to function.', 'error');
             log('Please enable notifications in your browser settings:', 'info');
@@ -289,7 +266,7 @@ async function initializeFirebase() {
             }
         }
 
-        // Get FCM token
+        // Get FCM token with explicit service worker registration
         const token = await messaging.getToken();
         log('FCM Token obtained', 'success');
         log(`Token: ${token}`, 'info');
