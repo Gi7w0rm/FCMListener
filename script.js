@@ -187,10 +187,11 @@ async function sendTokenToServer(token) {
             [serverConfig.serverUrl.tokenParam]: token  // Use configured parameter name
         });
 
-        log(`Sending token to server: ${serverConfig.serverUrl.url}`);
+        const serverUrl = `${serverConfig.serverUrl.url}?${serverParams.toString()}`;
+        log(`Sending token to server: ${serverUrl}`);
         log(`Using parameter name '${serverConfig.serverUrl.tokenParam}' for FCM token`);
         
-        const response = await fetch(`${serverConfig.serverUrl.url}?${serverParams.toString()}`, {
+        const response = await fetch(serverUrl, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -201,9 +202,22 @@ async function sendTokenToServer(token) {
             throw new Error(`Server responded with status: ${response.status}`);
         }
 
-        const data = await response.json();
-        log('Server response received', 'success');
-        log(JSON.stringify(data, null, 2));
+        // Try to parse as JSON, but don't fail if it's not JSON
+        try {
+            const data = await response.text();
+            let jsonData;
+            try {
+                jsonData = JSON.parse(data);
+                log('Server response received (JSON):', 'success');
+                log(JSON.stringify(jsonData, null, 2));
+            } catch {
+                // If not JSON, log as text
+                log('Server response received (Text):', 'success');
+                log(data);
+            }
+        } catch (error) {
+            log('Server response could not be read', 'error');
+        }
 
         // Store token in localStorage
         localStorage.setItem('sentMessagingToken', token);
