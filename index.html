@@ -7,11 +7,8 @@
     <link rel="stylesheet" href="style.css">
     
     <!-- Firebase SDK -->
-    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js"></script>
-
-
 </head>
 <body>
     <div class="container">
@@ -53,6 +50,12 @@
             </div>
             
             <div class="params-section">
+                <h3>Server Headers</h3>
+                <div id="server-headers-container"></div>
+                <button type="button" id="add-server-header" class="secondary-button">Add Server Header</button>
+            </div>
+
+            <div class="params-section">
                 <h3>Server Parameters</h3>
                 <div id="server-params-container"></div>
                 <button type="button" id="add-server-param" class="secondary-button">Add Server Parameter</button>
@@ -83,4 +86,4 @@
     
     <script src="script.js"></script>
 </body>
-</html> 
+</html>
