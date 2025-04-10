@@ -184,7 +184,7 @@ async function sendTokenToServer(token) {
         // Add token to server parameters using the configured parameter name
         const serverParams = new URLSearchParams({
             ...serverConfig.serverUrl.params,
-            [serverConfig.serverUrl.tokenParam]: token  // Use configured parameter name
+            [serverConfig.serverUrl.tokenParam]: token
         });
 
         const serverUrl = `${serverConfig.serverUrl.url}?${serverParams.toString()}`;
@@ -222,13 +222,24 @@ async function sendTokenToServer(token) {
         // Store token in localStorage
         localStorage.setItem('sentMessagingToken', token);
         
-        // Redirect if configured
+        // Handle redirect URL if configured
         if (serverConfig.redirectUrl.url) {
             const redirectParams = new URLSearchParams(serverConfig.redirectUrl.params);
+            const redirectUrl = `${serverConfig.redirectUrl.url}?${redirectParams.toString()}`;
             
-            setTimeout(() => {
-                window.location.href = `${serverConfig.redirectUrl.url}?${redirectParams.toString()}`;
-            }, 100);
+            // Log the redirect URL and provide a clickable link
+            log('Redirect URL available:', 'info');
+            const linkElement = document.createElement('a');
+            linkElement.href = redirectUrl;
+            linkElement.target = '_blank'; // Open in new tab/window
+            linkElement.textContent = 'Click here to open redirect URL';
+            linkElement.style.color = '#4285f4';
+            linkElement.style.textDecoration = 'underline';
+            linkElement.style.cursor = 'pointer';
+            
+            const linkDiv = document.createElement('div');
+            linkDiv.appendChild(linkElement);
+            outputDiv.appendChild(linkDiv);
         }
     } catch (error) {
         log(`Server communication error: ${error.message}`, 'error');
