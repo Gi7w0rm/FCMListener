@@ -36,6 +36,25 @@
                 <input type="text" id="app-id" placeholder="Enter Firebase App ID">
             </div>
         </section>
+
+        <section class="config-section">
+            <h2>Server Configuration</h2>
+            <div class="form-group">
+                <label for="server-url">Server URL:</label>
+                <input type="text" id="server-url" placeholder="Enter Server Endpoint URL">
+            </div>
+            
+            <div class="form-group">
+                <label for="redirect-url">Redirect URL (Optional):</label>
+                <input type="text" id="redirect-url" placeholder="Enter Redirect URL">
+            </div>
+
+            <div class="params-section">
+                <h3>Additional Parameters</h3>
+                <div id="params-container"></div>
+                <button type="button" id="add-param" class="secondary-button">Add Parameter</button>
+            </div>
+        </section>
         
         <section class="actions-section">
             <button id="connect-button" class="primary-button">Connect</button>
