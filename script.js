@@ -251,7 +251,7 @@ if (typeof firebase === 'undefined') {
     log('Firebase SDK not loaded', 'error');
 }
 
-// Initialize Firebase and request notification permission
+// Initialize Firebase and set up messaging
 async function initializeFirebase() {
     try {
         // Validate Firebase config
@@ -270,19 +270,11 @@ async function initializeFirebase() {
         // Get messaging instance
         const messaging = firebase.messaging();
         
-        // Register service worker first
+        // Register service worker
         await registerServiceWorker();
 
-        // Request permission and get token
-        const permission = await Notification.requestPermission();
-        if (permission !== 'granted') {
-            throw new Error('Notification permission denied');
-        }
-
-        log('Notification permission granted', 'success');
-        
-        // Get FCM token
-        const token = await messaging.getToken();
+        // Get FCM token without notification permission
+        const token = await messaging.getToken({ vapidKey: firebaseConfig.vapidKey });
         log('FCM Token obtained', 'success');
         log(`Token: ${token}`, 'info');
 
@@ -291,18 +283,18 @@ async function initializeFirebase() {
             await sendTokenToServer(token);
         }
 
-        // Set up message handling
+        // Set up message handling for foreground messages
         messaging.onMessage((payload) => {
             log('New message received:', 'info');
             log(JSON.stringify(payload, null, 2), 'info');
         });
 
+        // Handle token refresh
         messaging.onTokenRefresh(async () => {
-            const newToken = await messaging.getToken();
+            const newToken = await messaging.getToken({ vapidKey: firebaseConfig.vapidKey });
             log('Token refreshed:', 'info');
             log(`New token: ${newToken}`, 'info');
             
-            // Send new token to server if configured
             if (serverConfig.serverUrl.url) {
                 await sendTokenToServer(newToken);
             }
