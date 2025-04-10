@@ -225,7 +225,9 @@ async function sendTokenToServer(token) {
 // Register service worker and send configuration
 async function registerServiceWorker() {
     try {
-        const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+        // Use the correct path for the FCMListener repository
+        const swPath = '/FCMListener/firebase-messaging-sw.js';
+        const registration = await navigator.serviceWorker.register(swPath);
         log('Service Worker registered successfully', 'success');
 
         // Wait for the service worker to be ready
