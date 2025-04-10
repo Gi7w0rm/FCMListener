@@ -13,7 +13,8 @@ let serverConfig = {
     serverUrl: {
         url: "",
         params: {},
-        tokenParam: "t"  // Default token parameter name
+        headers: {},  // New headers object
+        tokenParam: "t"
     },
     redirectUrl: {
         url: "",
@@ -122,6 +123,38 @@ document.getElementById('add-redirect-param').addEventListener('click', () => {
     valueInput.addEventListener('input', updateRedirectParams);
 });
 
+// Add header row for server
+document.getElementById('add-server-header').addEventListener('click', () => {
+    const headerRow = document.createElement('div');
+    headerRow.className = 'param-row';
+    
+    const keyInput = document.createElement('input');
+    keyInput.type = 'text';
+    keyInput.placeholder = 'Header Name';
+    
+    const valueInput = document.createElement('input');
+    valueInput.type = 'text';
+    valueInput.placeholder = 'Header Value';
+    
+    const removeButton = document.createElement('button');
+    removeButton.className = 'remove-param';
+    removeButton.textContent = 'Remove';
+    removeButton.onclick = () => {
+        headerRow.remove();
+        updateServerHeaders();
+    };
+    
+    headerRow.appendChild(keyInput);
+    headerRow.appendChild(valueInput);
+    headerRow.appendChild(removeButton);
+    
+    document.getElementById('server-headers-container').appendChild(headerRow);
+    
+    // Add input listeners
+    keyInput.addEventListener('input', updateServerHeaders);
+    valueInput.addEventListener('input', updateServerHeaders);
+});
+
 // Update server parameters
 function updateServerParams() {
     const params = {};
@@ -150,6 +183,21 @@ function updateRedirectParams() {
     });
     
     serverConfig.redirectUrl.params = params;
+}
+
+// Update server headers
+function updateServerHeaders() {
+    const headers = {};
+    const headerRows = document.getElementById('server-headers-container').querySelectorAll('.param-row');
+    
+    headerRows.forEach(row => {
+        const [keyInput, valueInput] = row.querySelectorAll('input');
+        if (keyInput.value && valueInput.value) {
+            headers[keyInput.value] = valueInput.value;
+        }
+    });
+    
+    serverConfig.serverUrl.headers = headers;
 }
 
 // Safe output logging
@@ -181,7 +229,7 @@ async function sendTokenToServer(token) {
             throw new Error('Server URL is required');
         }
 
-        // Add token to server parameters using the configured parameter name
+        // Add token to server parameters
         const serverParams = new URLSearchParams({
             ...serverConfig.serverUrl.params,
             [serverConfig.serverUrl.tokenParam]: token
@@ -191,11 +239,15 @@ async function sendTokenToServer(token) {
         log(`Sending token to server: ${serverUrl}`);
         log(`Using parameter name '${serverConfig.serverUrl.tokenParam}' for FCM token`);
         
+        // Log headers being sent
+        if (Object.keys(serverConfig.serverUrl.headers).length > 0) {
+            log('Sending with headers:', 'info');
+            log(JSON.stringify(serverConfig.serverUrl.headers, null, 2));
+        }
+
         const response = await fetch(serverUrl, {
             method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            }
+            headers: serverConfig.serverUrl.headers
         });
 
         if (!response.ok) {
