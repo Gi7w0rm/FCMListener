@@ -246,6 +246,11 @@ async function registerServiceWorker() {
     }
 }
 
+// Make sure Firebase is loaded before using it
+if (typeof firebase === 'undefined') {
+    log('Firebase SDK not loaded', 'error');
+}
+
 // Initialize Firebase and request notification permission
 async function initializeFirebase() {
     try {
@@ -257,16 +262,17 @@ async function initializeFirebase() {
             throw new Error(`Missing Firebase configuration: ${missingFields.join(', ')}`);
         }
 
-        // Register service worker and send configuration
-        await registerServiceWorker();
-
         // Initialize Firebase if not already initialized
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
 
+        // Get messaging instance
         const messaging = firebase.messaging();
         
+        // Register service worker first
+        await registerServiceWorker();
+
         // Request permission and get token
         const permission = await Notification.requestPermission();
         if (permission !== 'granted') {
@@ -314,6 +320,11 @@ connectButton.addEventListener('click', async () => {
     try {
         connectButton.disabled = true;
         log('Starting FCM registration process...');
+        
+        // Check if Firebase SDK is loaded
+        if (typeof firebase === 'undefined') {
+            throw new Error('Firebase SDK not loaded. Please check your internet connection and try again.');
+        }
         
         await initializeFirebase();
         log('FCM registration process completed successfully', 'success');
